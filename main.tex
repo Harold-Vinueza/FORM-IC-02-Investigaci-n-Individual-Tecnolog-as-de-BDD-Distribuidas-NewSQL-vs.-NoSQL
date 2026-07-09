@@ -1,0 +1,139 @@
+\documentclass[10pt,journal]{IEEEtran}
+
+\usepackage[utf8]{inputenc}
+\usepackage[spanish,es-noindentfirst]{babel}
+\usepackage[T1]{fontenc}
+\usepackage{hyperref}
+\usepackage{cite}
+\usepackage{url}
+\usepackage{graphicx}
+\usepackage{xcolor}
+
+\hypersetup{
+    colorlinks=true,
+    linkcolor=blue,
+    urlcolor=blue,
+    citecolor=blue,
+    pdftitle={FORM-IC-02 - Tecnologias de BDD Distribuidas: MongoDB Atlas},
+    pdfauthor={Guerrero Ulloa Gleiston Ciceron}
+}
+
+\renewcommand{\baselinestretch}{0.98}
+
+\begin{document}
+
+% ---------------------------------------------------------------
+% PORTADA
+% ---------------------------------------------------------------
+\begin{titlepage}
+\centering
+\vspace*{1.2cm}
+
+{\large \textbf{UNIVERSIDAD T\'ECNICA ESTATAL DE QUEVEDO}\\}
+\vspace{0.2cm}
+{\normalsize FACULTAD DE CIENCIAS DE LA INGENIER\'IA\\}
+{\normalsize CARRERA DE SOFTWARE (SOFT-R)\\}
+
+\vspace{1.6cm}
+\rule{\linewidth}{0.4mm}\\[0.4cm]
+{\LARGE \textbf{Tecnolog\'ias de Bases de Datos Distribuidas:\\ NewSQL vs. NoSQL}}\\[0.3cm]
+{\Large An\'alisis T\'ecnico de MongoDB Atlas como Base de Datos Distribuida Orientada a Documentos}\\[0.4cm]
+\rule{\linewidth}{0.4mm}\\[1.0cm]
+
+{\large \textbf{Actividad:} FORM-IC-02 --- Investigaci\'on Individual\\[0.15cm]
+\textit{Preparatoria para el Informe T\'ecnico Individual (TA-IND-02) --- Semana 11}}\\[1.2cm]
+
+\begin{tabular}{rl}
+\textbf{Asignatura:} & Aplicaciones Distribuidas \\[0.1cm]
+\textbf{Nivel:} & S\'eptimo Nivel \\[0.1cm]
+\textbf{Paralelo:} & A \\[0.1cm]
+\textbf{Modalidad:} & Individual \\[0.1cm]
+\textbf{Car\'acter:} & Formativa \\[0.1cm]
+\textbf{Docente:} & Guerrero Ulloa Gleiston Cicer\'on\\[0.1cm]
+\end{tabular}
+
+\vspace{1.2cm}
+{\large \textbf{Estudiante:}\\ Vinueza Sanchez Harold Nicolas }\\[1.0cm]
+
+{\normalsize \textbf{Repositorio del proyecto:}\\
+\url{https://github.com/Harold-Vinueza/FORM-IC-02-Investigaci-n-Individual-Tecnolog-as-de-BDD-Distribuidas-NewSQL-vs.-NoSQL}}
+
+\vfill
+{\normalsize \today}
+
+\end{titlepage}
+
+\twocolumn
+
+% ---------------------------------------------------------------
+% TITULO IEEE (segunda seccion)
+% ---------------------------------------------------------------
+\title{MongoDB Atlas como Tecnolog\'ia de Base de Datos Distribuida: Modelo de Consistencia, Distribuci\'on de Datos y Aplicabilidad Pr\'actica}
+
+\author{Guerrero~Ulloa~Gleiston~Cicer\'on\\
+\textit{Ingenier\'ia en Software, Universidad T\'ecnica Estatal de Quevedo}\\
+\textit{Aplicaciones Distribuidas --- S\'eptimo Nivel, Paralelo A}}
+
+\maketitle
+
+\begin{abstract}
+El presente trabajo analiza a MongoDB Atlas como representante del paradigma NoSQL dentro del ecosistema de bases de datos distribuidas, en contraste con los motores relacionales tradicionales y con las soluciones NewSQL. Se describen sus mecanismos de distribuci\'on de datos mediante particionamiento horizontal (\textit{sharding}) y conjuntos de r\'eplicas, se clasifica su comportamiento de acuerdo con el teorema CAP, se presenta un caso de uso real documentado y se discute su pertinencia para proyectos acad\'emicos orientados a aplicaciones distribuidas.
+\end{abstract}
+
+\begin{IEEEkeywords}
+MongoDB Atlas, NoSQL, teorema CAP, bases de datos distribuidas, sharding, consistencia eventual.
+\end{IEEEkeywords}
+
+\section{Introducci\'on}
+El crecimiento sostenido del vol\'umen de datos generado por aplicaciones web, m\'oviles y de Internet de las Cosas ha llevado a que los sistemas de bases de datos tradicionales, pensados para operar en un \'unico nodo o en esquemas r\'igidamente normalizados, resulten insuficientes frente a exigencias de escalabilidad horizontal y disponibilidad continua \cite{davoudian2018survey}. Como respuesta a este escenario surgieron, por un lado, las bases de datos NoSQL, que sacrifican parte de las garant\'ias transaccionales cl\'asicas a cambio de flexibilidad de esquema y escalado sencillo, y por otro las soluciones NewSQL, que buscan conservar las propiedades ACID mientras distribuyen los datos entre m\'ultiples nodos \cite{kim2020migracion}. Dentro de este panorama, MongoDB Atlas se posiciona como uno de los servicios NoSQL gestionados m\'as adoptados en la industria, al ofrecer un modelo orientado a documentos con capacidades nativas de distribuci\'on, replicaci\'on autom\'atica y escalado el\'astico en la nube \cite{davoudian2018survey}. El objetivo de este documento es examinar sus caracter\'isticas de distribuci\'on, su ubicaci\'on dentro del teorema CAP, un caso real documentado de su aplicaci\'on y la pertinencia de adoptarlo en un proyecto propio de aplicaciones distribuidas.
+
+\section{Caracter\'isticas de Distribuci\'on de Datos}
+MongoDB Atlas organiza la distribuci\'on de la informaci\'on mediante dos mecanismos complementarios: la \textbf{replicaci\'on} y el \textbf{particionamiento horizontal o \textit{sharding}}. Cada conjunto de r\'eplicas (\textit{replica set}) mantiene copias sincronizadas de los datos en distintos nodos, de modo que si el nodo primario falla, uno de los nodos secundarios asume autom\'aticamente ese rol, garantizando continuidad operativa \cite{felizzi2024sharding}. Para conjuntos de datos que superan la capacidad de un solo servidor, o cuando la tasa de lecturas y escrituras es demasiado alta, el motor recurre al \textit{sharding}: los documentos de una colecci\'on se distribuyen entre m\'ultiples fragmentos (\textit{shards}) en funci\'on de una \textbf{clave de fragmentaci\'on} (\textit{shard key}), mientras que un enrutador de consultas (\texttt{mongos}) se encarga de dirigir cada operaci\'on hacia el fragmento correspondiente sin que la aplicaci\'on cliente perciba la complejidad subyacente \cite{felizzi2024sharding,antas2022covid}. Un componente adicional, los servidores de configuraci\'on, conserva los metadatos sobre c\'omo est\'an distribuidos los rangos de datos entre fragmentos, lo cual permite que el sistema reequilibre autom\'aticamente la carga a medida que el vol\'umen de informaci\'on crece \cite{felizzi2024sharding}. La elecci\'on de una buena clave de fragmentaci\'on resulta determinante, pues una distribuci\'on desigual puede generar puntos calientes que concentran el tr\'afico en pocos nodos, deteriorando el rendimiento general del cl\'uster \cite{davoudian2018survey}.
+
+\section{Modelo de Consistencia seg\'un el Teorema CAP}
+El teorema CAP, formulado inicialmente por Brewer y demostrado formalmente por Gilbert y Lynch, establece que ning\'un sistema distribuido puede garantizar simult\'aneamente consistencia, disponibilidad y tolerancia a particiones de red; ante una partici\'on real, el dise\~nador debe optar por sacrificar una de las dos primeras propiedades \cite{brewer2000towards,gilbert2002brewers}. En este marco, MongoDB se clasifica t\'ipicamente como un sistema \textbf{CP} (consistencia y tolerancia a particiones), ya que, al perder contacto el nodo primario de un conjunto de r\'eplicas, el sistema prioriza mantener la coherencia de los datos y puede volver temporalmente no disponibles ciertas operaciones de escritura hasta que se elige un nuevo primario \cite{felizzi2024sharding}. No obstante, esta clasificaci\'on binaria resulta incompleta: como se\~nala Abadi mediante el modelo PACELC, incluso en ausencia de particiones un sistema distribuido debe resolver un compromiso entre latencia y consistencia (\textit{Else}), y MongoDB Atlas permite ajustar este balance mediante niveles configurables de \textit{write concern} y \textit{read preference}, pudiendo optar por lecturas m\'as r\'apidas sobre nodos secundarios con consistencia eventual, o por lecturas estrictamente consistentes sobre el nodo primario \cite{abadi2012consistency}. Esta flexibilidad diferencia a MongoDB Atlas de motores AP puros, como Cassandra, orientados de forma predeterminada hacia la disponibilidad continua incluso a costa de la coherencia inmediata \cite{dasilva2023evaluation}.
+
+\section{Caso de Uso Real Documentado}
+Un caso documentado oficialmente por MongoDB corresponde a Nextar, empresa brasile\~na proveedora de soluciones de punto de venta (POS) para peque\~nos comercios. Ante el cierre de establecimientos f\'isicos durante la pandemia de COVID-19, la compa\~n\'ia necesit\'o habilitar r\'apidamente tiendas en l\'inea para sus clientes y migr\'o su almacenamiento de datos, originalmente local, hacia MongoDB Atlas desplegado sobre Amazon Web Services y Google Cloud Platform. La naturaleza multicloud de Atlas result\'o clave para esa migraci\'on progresiva, mientras que Atlas Search se integr\'o directamente sobre los datos ya alojados en el cl\'uster para ofrecer b\'usqueda y agregaci\'on de pedidos sin necesidad de sincronizar un motor de b\'usqueda externo. Con apoyo del servicio profesional de MongoDB, el equipo de Nextar tambi\'en identific\'o consultas ineficientes mediante herramientas de diagn\'ostico de rendimiento y aplic\'o estrategias de indexado, lo que permiti\'o sostener cientos de miles de productos ofrecidos por m\'ultiples comercios a trav\'es de tiendas en l\'inea alojadas por la propia empresa \cite{mongodb2024nextar}. Este caso ilustra c\'omo la combinaci\'on de escalado el\'astico, distribuci\'on multicloud y b\'usqueda integrada de Atlas resuelve necesidades reales de continuidad de negocio bajo condiciones de crecimiento repentino de demanda.
+
+\section{Pertinencia para el Proyecto Propio}
+Dentro del contexto de la asignatura de Aplicaciones Distribuidas, un proyecto acad\'emico que involucre m\'ultiples fuentes de datos heterog\'eneas, esquemas cambiantes durante etapas tempranas de desarrollo y necesidad de escalado progresivo encuentra en MongoDB Atlas una opci\'on razonable frente a un motor relacional tradicional. Su modelo de documentos tipo JSON/BSON facilita representar entidades con atributos variables sin someterlas a migraciones de esquema constantes, algo frecuente en proyectos universitarios que evolucionan por iteraciones \cite{kim2020migracion}. Adem\'as, el nivel gratuito de Atlas permite desplegar un cl\'uster distribuido real, con r\'eplicas activas y copias de seguridad autom\'aticas, sin incurrir en costos de infraestructura, lo cual resulta id\'oneo para validar conceptos de tolerancia a fallos y consistencia estudiados en la asignatura antes de trasladar esas decisiones a un motor NewSQL m\'as exigente en configuraci\'on, como CockroachDB o YugabyteDB \cite{dasilva2023evaluation}. Su principal limitaci\'on, sin embargo, radica en la dependencia de la conectividad a internet y en la necesidad de dise\~nar cuidadosamente la clave de fragmentaci\'on cuando el proyecto contemple vol\'umenes de datos considerables, aspecto que debe evaluarse desde las primeras etapas de modelado.
+
+\section{Conclusiones}
+MongoDB Atlas constituye una alternativa NoSQL madura para escenarios distribuidos que priorizan flexibilidad de esquema, escalado horizontal autom\'atizado y alta disponibilidad. Su clasificaci\'on como sistema predominantemente CP, matizada por el modelo PACELC y por sus niveles configurables de consistencia, le permite adaptarse a distintos perfiles de aplicaci\'on sin exigir una reescritura completa de la arquitectura. El caso de Nextar evidencia que estas capacidades no son meramente te\'oricas, sino que sostienen operaciones cr\'iticas de negocio en entornos reales de alta demanda. Para un proyecto acad\'emico de aplicaciones distribuidas, la curva de aprendizaje reducida y el nivel gratuito de Atlas lo convierten en un punto de partida pr\'actico para experimentar con conceptos de distribuci\'on, replicaci\'on y consistencia antes de abordar motores NewSQL de mayor complejidad operativa.
+
+\begin{thebibliography}{9}
+
+\bibitem{brewer2000towards}
+E.~A. Brewer, ``Towards robust distributed systems (abstract),'' in \textit{Proc. 19th Annu. ACM Symp. Principles of Distributed Computing (PODC '00)}, Portland, OR, USA, 2000, p.~7, doi: 10.1145/343477.343502.
+
+\bibitem{gilbert2002brewers}
+S.~Gilbert and N.~Lynch, ``Brewer's conjecture and the feasibility of consistent, available, partition-tolerant web services,'' \textit{ACM SIGACT News}, vol.~33, no.~2, pp.~51--59, Jun. 2002, doi: 10.1145/564585.564601.
+
+\bibitem{abadi2012consistency}
+D.~J. Abadi, ``Consistency tradeoffs in modern distributed database system design: CAP is only part of the story,'' \textit{Computer}, vol.~45, no.~2, pp.~37--42, Feb. 2012, doi: 10.1109/MC.2012.33.
+
+\bibitem{davoudian2018survey}
+A.~Davoudian, L.~Chen, and M.~Liu, ``A survey on NoSQL stores,'' \textit{ACM Comput. Surv.}, vol.~51, no.~2, Art. no.~40, Apr. 2018, doi: 10.1145/3158661.
+
+\bibitem{dasilva2023evaluation}
+L.~F. Da~Silva and J.~V. F.~Lima, ``An evaluation of relational and NoSQL distributed databases on a low-power cluster,'' \textit{J. Supercomput.}, vol.~79, pp.~13402--13420, 2023, doi: 10.1007/s11227-023-05166-7.
+
+\bibitem{kim2020migracion}
+H.-J. Kim, E.-J. Ko, Y.-H. Jeon, and K.-H. Lee, ``Techniques and guidelines for effective migration from RDBMS to NoSQL,'' \textit{J. Supercomput.}, vol.~76, no.~10, pp.~7936--7950, 2020, doi: 10.1007/s11227-018-2361-2.
+
+\bibitem{antas2022covid}
+J.~Antas, R.~Rocha Silva, and J.~Bernardino, ``Assessment of SQL and NoSQL systems to store and mine COVID-19 data,'' \textit{Computers}, vol.~11, no.~2, Art. no.~29, 2022, doi: 10.3390/computers11020029.
+
+\bibitem{cooper2010ycsb}
+B.~F. Cooper, A.~Silberstein, E.~Tam, R.~Ramakrishnan, and R.~Sears, ``Benchmarking cloud serving systems with YCSB,'' in \textit{Proc. 1st ACM Symp. Cloud Computing (SoCC '10)}, Indianapolis, IN, USA, 2010, pp.~143--154, doi: 10.1145/1807128.1807152.
+
+\bibitem{felizzi2024sharding}
+S.~Solat, ``Sharding distributed databases: A critical review,'' \textit{arXiv preprint arXiv:2404.04384}, 2024, doi: 10.48550/arXiv.2404.04384.
+
+\bibitem{mongodb2024nextar}
+MongoDB, Inc., ``C\'omo utilizar MongoDB Atlas y Atlas Search para ayudar a la modernizaci\'on digital de las tiendas --- Caso Nextar.'' [En l\'inea]. Disponible: https://www.mongodb.com/es/solutions/customer-case-studies/nextar. [Accedido: 8-jul-2026].
+
+\end{thebibliography}
+
+\end{document}
